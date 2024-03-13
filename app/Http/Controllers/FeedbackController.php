@@ -3,47 +3,45 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Services\FeedbackService;
 use App\Http\Requests\StoreFeedbackRequest;
+use App\Factories\FeedbackStorageFactory;
 
+/**
+ * Class FeedbackController
+ * @package App\Http\Controllers
+ */
 class FeedbackController extends Controller
 {
-    protected $feedbackService;
-
-    public function __construct(FeedbackService $feedbackService)
-    {
-        $this->feedbackService = $feedbackService;
-    }
-
     /**
      * Display a listing of the feedbacks.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\Response The JSON response containing the feedbacks.
      */
     public function index()
     {
-        // Retrieve all feedbacks using the FeedbackService
-        $feedbacks = $this->feedbackService->getAllFeedbacks();
+        //Use this if you want to set database
+        //$storage = FeedbackStorageFactory::start('database');
+        $storage = FeedbackStorageFactory::start('file');
+        $feedbacks = $storage->getAll();
 
-        // Return feedbacks as JSON response
         return response()->json($feedbacks, 200);
     }
 
     /**
      * Store a newly created feedback in storage.
      *
-     * @param  \App\Http\Requests\StoreFeedbackRequest  $request
-     * @return \Illuminate\Http\Response
+     * @param StoreFeedbackRequest $request The incoming request containing the feedback data.
+     * @return \Illuminate\Http\Response The JSON response indicating the success or failure of the operation.
      */
     public function store(StoreFeedbackRequest $request)
     {
-        // Validate the incoming request data
         $validatedData = $request->validated();
 
-        // Save the feedback using the FeedbackService
-        $this->feedbackService->saveFeedback($validatedData);
+        //Use this if you want to set database
+        //$storage = FeedbackStorageFactory::start('database');
+        $storage = FeedbackStorageFactory::start('file');
+        $storage->save($validatedData);
 
-        // Return a success response
         return response()->json(['message' => 'Feedback successfully saved'], 201);
     }
 }
